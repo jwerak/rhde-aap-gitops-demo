@@ -3,25 +3,26 @@
 # Preparation - Lab deployment
 
 ## Table of Contents
-* [Overview of the preparation workflow](#overview-of-the-preparation-workflow)
-* [Prepare your environment](#prepare-your-environment)
-* [Clone demo repo ](#clone-demo-repo)
-* [Terraform prerequisites](#terraform-prerequisites)
-* [Edge Management Ansible Collection prerequisites](#edge-management-ansible-collection-prerequisites)
- 
-  - [Get your Ansible Controller Manifest](#get-your-ansible-controller-manifest)
-  - [Get your Red Hat Customer Portal Offline Token](#get-your-red-hat-customer-portal-offline-token)
-  - [Get your Pull Secret](#get-your-pull-secret)
-  - [Create Vault Secret file](#create-vault-secret-file)
-  - [Prepare Ansible inventory and variables](#prepare-ansible-inventory-and-variables)
-
-* [Demo specific prerequisites](#demo-specific-prerequisites)
- 
-  - [Copy the container images to your Quay account](#copy-the-container-images-to-your-quay-account)
-
-* [Deploy the lab](#deploy-the-lab)
-* [Pre-flight checks](#pre-flight-checks)
-* [BONUS - If there is not enough time for your demo...](#bonus---if-there-is-not-enough-time-for-your-demo)
+- [Preparation - Lab deployment](#preparation---lab-deployment)
+  - [Table of Contents](#table-of-contents)
+  - [Overview of the preparation workflow](#overview-of-the-preparation-workflow)
+  - [Prepare your environment](#prepare-your-environment)
+  - [Clone demo repo](#clone-demo-repo)
+  - [(Optional) Terraform prerequisites](#optional-terraform-prerequisites)
+  - [Edge Management Ansible Collection prerequisites](#edge-management-ansible-collection-prerequisites)
+    - [Get your Ansible Automation Platform Manifest](#get-your-ansible-automation-platform-manifest)
+    - [Get your Red Hat Customer Portal Offline Token](#get-your-red-hat-customer-portal-offline-token)
+    - [Get your Red Hat Pull Secret](#get-your-red-hat-pull-secret)
+    - [Create Vault Secret file](#create-vault-secret-file)
+    - [Prepare Ansible inventory and variables](#prepare-ansible-inventory-and-variables)
+  - [Demo specific prerequisites](#demo-specific-prerequisites)
+    - [(Optional) Copy the container images to your Quay account](#optional-copy-the-container-images-to-your-quay-account)
+    - [Subscriptions](#subscriptions)
+  - [Deploy the lab](#deploy-the-lab)
+    - [If you want to use the optional Terraform script (use AWS)](#if-you-want-to-use-the-optional-terraform-script-use-aws)
+    - [If you have your VM/server prepared manually (now AWS)](#if-you-have-your-vmserver-prepared-manually-now-aws)
+  - [Pre-flight checks](#pre-flight-checks)
+  - [BONUS - If there is not enough time for your demo...](#bonus---if-there-is-not-enough-time-for-your-demo)
 
 
 ## Overview of the preparation workflow
@@ -47,7 +48,7 @@ After the deployment you will have the following running sevices at the Edge Man
 
 ## Prepare your environment
 
-In order to deploy/prepare the lab you will only the Edge Management node, the Edge Device won't be used/deployed until you run the demo steps. 
+In order to deploy/prepare the lab you will only the Edge Management node, the Edge Device won't be used/deployed until you run the demo steps.
 
 Remember that there are two devices/VMs involved in the demo:
 
@@ -68,7 +69,7 @@ Your laptop will need Ansible installed to run the playbooks contained in the [E
 
 ## Clone demo repo
 
-Clone the this repo and move your CLI prompt to the `ansible` directory on the path where the actual demo is located. The demo directory should have a similar organization as the one shown below, you will need to move inside the `ansible` directory which will contain, among others, the inventory, playbooks and vars used for the demo. 
+Clone the this repo and move your CLI prompt to the `ansible` directory on the path where the actual demo is located. The demo directory should have a similar organization as the one shown below, you will need to move inside the `ansible` directory which will contain, among others, the inventory, playbooks and vars used for the demo.
 
 ```bash
 ├── terraform
@@ -115,6 +116,11 @@ aws_secret_access_key = your_secret_access_key
 
 + Prepare Terraform variables in file `../terraform/rhel_vm.tfvars`
 
+  >**Note**
+  >
+  > You can search for RHEL ami-id using following command for give region:
+  >
+  > `aws ec2 describe-images --filters "Name=owner-id,Values=309956199498" --query "Images[?starts_with(Name, 'RHEL-9.4')].[ImageId,Name]" --output table --region eu-central-1`
 
 
 
@@ -151,7 +157,7 @@ You have the steps in the [Ansible Platform Documentation](https://access.redhat
 
 3. Add the subscription entitlements needed (click the tab and click "Add Subscriptions") where Ansible Automation Platform is available.
 
-4. Go back to "Details" tab and click "Export Manifest" 
+4. Go back to "Details" tab and click "Export Manifest"
 
 Create a `files` directory under `ansible` and save apart your `manifest.zip` file in that `files` directory (a different location can be configured with the `manifest_file` variable).
 
@@ -189,7 +195,7 @@ It can be generated [here](https://access.redhat.com/management/api).
 
   >**Note**
   >
-  >  Remember that the Offline tokens will expire after 30 days of inactivity. If your offline Token is not valid, you won't be able to download the `aap.tar.gz`. 
+  >  Remember that the Offline tokens will expire after 30 days of inactivity. If your offline Token is not valid, you won't be able to download the `aap.tar.gz`.
 
 Take note of the token, you will use it when creating the Vault Secrets file.
 
@@ -254,7 +260,7 @@ If you use the default path you should have the `secrets.yml` file in this path:
 
 ### Prepare Ansible inventory and variables
 
-Prepare the Ansible inventory file  
+Prepare the Ansible inventory file
 
 
 ```yaml
@@ -353,11 +359,15 @@ skopeo copy docker://quay.io/luisarizmendi/simple-http:prod docker://quay.io/<yo
   >
   > The container images are multiarchitecture, so you will be able to use it no matter if your system is `aarch64` or `x86_64`
 
-Remember to change visibility of both 2048 and simple-http images to "public" in each "Repository Settings" 
+Remember to change visibility of both 2048 and simple-http images to "public" in each "Repository Settings"
 
 ### Subscriptions
 
 The demo makes use of Microshift, which needs OCP and Fast-Datapath repositories enabled. Your subscription must have them available to be used.
+
+e.g.:
+- Fast Datapath for RHEL 9 x86_64 (RPMs)	fast-datapath-for-rhel-9-x86_64-rpms
+- Red Hat OpenShift Container Platform 4.16 for RHEL 9 x86_64 (RPMs)	rhocp-4.16-for-rhel-9-x86_64-rpms
 
 
 ## Deploy the lab
@@ -405,8 +415,8 @@ ansible-galaxy collection install luisarizmendi.rh_edge_mgmt --upgrade
 Once you have all the pre-requisites ready, including the Ansible Vault secret file, you need to run the main playbook including the Vault password by adding the `--ask-vault-pass` option:
 
 ```shell
-ansible-playbook -vvi inventory --ask-vault-pass playbooks/main.yml 
-``` 
+ansible-playbook -vvi inventory --ask-vault-pass playbooks/main.yml
+```
 
 
 
@@ -417,7 +427,7 @@ These pre-flight checks should be performed just right after the deployment. You
 1) Check the access to following services:
 
 * Ansible Automation Platform Controller: https://<edge-management-ip>:8443
-* Ansible Automation Platform Event-Driven Ansible Controller:  https://<edge-management-ip>:8445 
+* Ansible Automation Platform Event-Driven Ansible Controller:  https://<edge-management-ip>:8445
 * Cockpit: https://<edge-management-ip>:9090
 * Gitea: http://<edge-management-ip>:3000
 

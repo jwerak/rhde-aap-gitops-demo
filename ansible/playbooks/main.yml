@@ -3,16 +3,16 @@
   hosts:
     - edge_management
   tasks:
-
     - name: Install management node
       ansible.builtin.include_role:
         name: luisarizmendi.rh_edge_mgmt.setup_rh_edge_mgmt_node
       vars:
         ### COLLECTION VARS
         microshift: true
-        microshift_release: 4.15
+        microshift_release: 4.16
         system_arch: "x86_64"
-        #system_arch: "aarch64"
+        # system_arch: "aarch64"
+        container_config_by_file: true
 
     - name: Config management node
       ansible.builtin.include_role:
@@ -20,10 +20,10 @@
       vars:
         ### COLLECTION VARS
         system_arch: "x86_64"
-        #system_arch: "aarch64"
+        # system_arch: "aarch64"
         image_builder_admin_name: admin
         image_builder_admin_password: R3dh4t1!
-        image_builder_custom_rpm_files:  ../templates/custom-rpms
+        image_builder_custom_rpm_files: ../templates/custom-rpms
         gitea_admin_repos_template: ../templates/gitea_admin_repos
         gitea_user_repos_template: ../templates/gitea_user_repos
         aap_config_template: ../templates/aap_config.j2
@@ -38,4 +38,3 @@
         gitea_user_count: 3
         ### DEMO SPECIFIC VARS
         apps_registry: quay.io/luisarizmendi
-

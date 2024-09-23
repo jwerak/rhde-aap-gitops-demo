@@ -1,0 +1,6 @@
+---
+- name: Various test
+  hosts: all
+  tasks:
+    - name: Load variables
+      ansible.builtin.include_vars: "/tmp/aap_config.yml"

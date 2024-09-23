@@ -73,7 +73,7 @@ if conn_name:
     # Run the second shell command to get the MAC address
     try:
         MAC_ADDRESS = subprocess.check_output(f"ip addr | grep {conn_name} -A 1 | grep link | awk '{{print $2}}' | sed 's/://g'", shell=True)
-        MAC_ADDRESS = MAC_ADDRESS.decode("utf-8").strip()
+        MAC_ADDRESS = MAC_ADDRESS.decode("utf-8").strip().lower()
     except subprocess.CalledProcessError as e:
         print(f"Error running the second shell command: {e}")
         MAC_ADDRESS = None
@@ -98,9 +98,9 @@ for event in i.event_gen(yield_nones=False):
                 # Check if the "/root/inotify-wait" file exists
                 if not inotify_wait_exists():
                     # Send a webhook notification with JSON data
-                    send_webhook(path, filename, type_names, git_user, inventory, running_env )
+                    send_webhook(path, filename, type_names, git_user, inventory, running_env)
                     # Create the "/root/inotify-wait" file
-                    open('/root/inotify-wait', 'w').close()
+                    # open('/root/inotify-wait', 'w').close()
 
 i.remove_watch(DIRECTORY)
 {% endraw %}

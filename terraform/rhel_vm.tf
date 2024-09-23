@@ -116,6 +116,7 @@ resource "aws_instance" "edge_mgmt_vm" {
               sudo -u ${var.admin_user} chmod 600 /home/${var.admin_user}/.ssh/authorized_keys
               sudo usermod --password $(echo ${var.admin_pass} | openssl passwd -1 -stdin) ${var.admin_user}
               sudo sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/g' /etc/ssh/sshd_config
+              sudo sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/g' /etc/ssh/sshd_config.d/50-cloud-init.conf
               sudo systemctl restart sshd
               EOF
 }

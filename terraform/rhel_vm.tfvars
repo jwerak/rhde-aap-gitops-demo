@@ -1,10 +1,6 @@
-aws_region      = "eu-west-1"
-ami_id          = "ami-028f9616b17ba1d53"
+aws_region      = "eu-central-1"
+ami_id          = "ami-0ad9d6257ef87c680"
 instance_type   = "m7i.xlarge"
 admin_user = "admin"
 admin_pass = "R3dh4t1!"
-ssh_key_file    = "~/.ssh/id_rsa.pub"
-
-
-
-
+ssh_key_file    = "~/.ssh/id_ed25519.pub"

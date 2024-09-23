@@ -20,7 +20,9 @@ else
     ADMIN_PASS="R3dh4t1!"
 fi
 
-# add Terrafor variables
+# set -xe
+
+# add Terraform variables
 sed -i "s/admin_user\s*=\s*\"[^\"]*\"/admin_user = \"$ADMIN_USER\"/" terraform/rhel_vm.tfvars
 sed -i "s/admin_pass\s*=\s*\"[^\"]*\"/admin_pass = \"$ADMIN_PASS\"/" terraform/rhel_vm.tfvars
 
@@ -51,9 +53,14 @@ VM_IP=$(terraform output -state="${TF_STATE}" public_ip  | sed 's/"//g')
 
 echo "Wait until the cloud-init script is done (it could take 5-8 minutes)"
 
-while [ $VM_STARTING -ne 0 ] ; do
+while true ; do
     ssh -o BatchMode=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=no ${ADMIN_USER}@${VM_IP} 'exit' &>/dev/null
     VM_STARTING=$?
+
+    if [ $VM_STARTING -eq 0 ]; then
+        break;
+    fi
+
     echo "Waiting to SSH ${VM_IP} with user ${ADMIN_USER}..."
     sleep 60
 done

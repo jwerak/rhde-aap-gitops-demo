@@ -1,4 +1,3 @@
-
 {% raw %}
 ---
 - name: Clone GitHub Repository and Copy Files
@@ -20,7 +19,6 @@
             path: "{{ local_clone_path }}-{{ ansible_host }}"
             state: absent
 
-
         - name: Create temp directory
           file:
             path: "{{ local_clone_path }}-{{ ansible_host }}"
@@ -33,10 +31,9 @@
         - name: Remove protocol from git_repo_url
           set_fact:
             git_repo_url_nohttp: "{{ git_repo_url | regex_replace('^(http|https)://', '') }}"
-    
 
-        - name: Clone repo 
-          ansible.builtin.shell:            
+        - name: Clone repo
+          ansible.builtin.shell:
             cmd: "git clone {{ git_repo_url_http }}://{{  git_user }}:'{{ git_password }}'@{{ git_repo_url_nohttp }} {{ local_clone_path }}-{{ ansible_host }}"
 
         - name: Set template path
@@ -48,8 +45,8 @@
             paths: "{{ _template_src_path }}"
             patterns: "*"
             recurse: yes
-            hidden: true            
-            file_type: file 
+            hidden: true
+            file_type: file
           register: _template_files
 
         - name: Crop template file paths
@@ -60,31 +57,34 @@
           set_fact:
             _template_directories: "{{ _template_files_crop | map('dirname') | unique | list }}"
 
+    - name: Blocke Apply system configs
+      block:
+        - name: Create inotify wait
+          file:
+            path: "{{ inotify_wait_file }}"
+            state: file
 
-    - name: Be sure that the directories exist
-      file:
-        path: "{{ item }}"
-        state: directory
-      loop: "{{ _template_directories }}"
+        - name: Be sure that the directories exist
+          file:
+            path: "{{ item }}"
+            state: directory
+          loop: "{{ _template_directories }}"
 
+        - name: Copy template files to admin repos
+          ansible.builtin.template:
+            src: "{{ _template_src_path }}/{{ item }}"
+            dest: "/{{ item }}"
+          loop: "{{ _template_files_crop }}"
 
-    - name: Copy template files to admin repos
-      ansible.builtin.template:
-        src: "{{ _template_src_path }}/{{ item }}"
-        dest: "/{{ item }}"
-      loop: "{{ _template_files_crop }}"
-
-    
-    - name: Remove the local clone
-      delegate_to: localhost
-      file:
-        path: "{{ local_clone_path }}-{{ ansible_host }}"
-        state: absent
-
-      # So it does run the workflow again when a new change happens
-    - name: Remove inotify wait
-      file:
-        path: "{{ inotify_wait_file }}"
-        state: absent
-
+        - name: Remove the local clone
+          delegate_to: localhost
+          file:
+            path: "{{ local_clone_path }}-{{ ansible_host }}"
+            state: absent
+      always:
+        # So it does run the workflow again when a new change happens
+        - name: Remove inotify wait
+          file:
+            path: "{{ inotify_wait_file }}"
+            state: absent
 {% endraw %}

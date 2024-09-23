@@ -33,7 +33,7 @@ CONFIGURE_VPN=true
 
 device_name=$(ip -o link show | awk -F': ' '$2 != "lo" {print $2; exit}')
 IP_ADDRESS=$(ip -4 addr show dev "$device_name" | awk '/inet / {print $2}' | cut -d/ -f1)
-MAC_ADDRESS=$(ip link show dev "$device_name" | awk '/link\/ether/ {print $2}')
+MAC_ADDRESS=$(ip link show dev "$device_name" | awk '/link\/ether/ {print $2}' | tr A-Z a-z)
 MAC_ADDRESS_FORMAT=$(echo "$MAC_ADDRESS" | tr -d ':')
 
 IP_AAP_PRIVATE={{ aap_ip_private }}
@@ -72,7 +72,7 @@ conn %default
 conn edge-$MAC_ADDRESS_FORMAT
     encapsulation=yes
     left=%defaultroute
-    leftid=$MAC_ADDRESS_FORMAT
+    leftid=@$MAC_ADDRESS_FORMAT
     right=${IP_AAP_PUBLIC}
     rightid=${IP_AAP_PRIVATE}
     authby=secret
@@ -93,7 +93,7 @@ cat > /etc/ipsec.secrets <<EOF
 EOF
 
 systemctl enable ipsec
-systemctl start ipsec 
+systemctl start ipsec
 
 
 # Add masquerade rule for the private IP
@@ -118,7 +118,7 @@ sleep 5
 conn_name=\$(nmcli -t -f NAME con show | head -n 1)
 device_name=\$(nmcli -t -f GENERAL.DEVICES con show "\$conn_name" | head -n 1 | cut -d: -f2)
 IP_ADDRESS=\$(nmcli -t -f IP4.ADDRESS con show "\$conn_name" | head -n 1 | cut -d: -f2 | cut -d/ -f1)
-MAC_ADDRESS=\$(nmcli -g GENERAL.HWADDR device show "\$device_name" | tr -d '\\')
+MAC_ADDRESS=\$(nmcli -g GENERAL.HWADDR device show "\$device_name" | tr -d '\\' | tr A-Z a-z)
 MAC_ADDRESS_FORMAT=\$(echo "\$MAC_ADDRESS" | tr -d ':')
 USER='{{  gitea_user_name }}{{ user_number }}'
 
